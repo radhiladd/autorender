@@ -35,9 +35,23 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-full flex-col bg-[#f5f5f5]">
       <header
-        className="flex shrink-0 items-center justify-end"
+        className="flex shrink-0 items-center"
         style={{ height: 48, padding: '0 24px', gap: 16 }}
       >
+        <div className="flex items-center gap-2 mr-auto">
+          <div
+            className="flex h-4 w-6 shrink-0 items-center justify-center"
+            style={{ borderRadius: 3, background: '#1d4ed8' }}
+          >
+            <HouseSimple size={11} weight="fill" color="#f5f5f5" />
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-[14px] font-medium leading-[1.15] text-ink-2">
+              Rivendell Homes
+            </div>
+            <div className="text-[10px] leading-[1.15] text-ink-4">Config</div>
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <TopBarButton>
             <SquaresFour size={16} />
@@ -70,22 +84,7 @@ export function Shell({ children }: { children: ReactNode }) {
           className="flex h-full w-[224px] shrink-0 flex-col"
           style={{ background: '#f5f5f5' }}
         >
-          <div className="flex h-12 items-center gap-2 px-4">
-            <div
-              className="flex h-4 w-6 shrink-0 items-center justify-center"
-              style={{ borderRadius: 3, background: '#1d4ed8' }}
-            >
-              <HouseSimple size={11} weight="fill" color="#f5f5f5" />
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-[14px] font-medium leading-[1.15] text-ink-2">
-                Rivendell Homes
-              </div>
-              <div className="text-[10px] leading-[1.15] text-ink-4">Config</div>
-            </div>
-          </div>
-
-          <nav className="ha-scroll flex min-h-0 flex-1 flex-col">
+          <nav className="ha-scroll flex min-h-0 flex-1 flex-col pt-3">
             <div className="pb-2">
               {NAV_ITEMS.filter((item) => item.group === 'workspace').map((item) => (
                 <SidebarItem

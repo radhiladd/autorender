@@ -13,7 +13,7 @@ export function ViewToggle({
 }) {
   return (
     <div
-      className="flex items-center rounded-[6px] border border-line p-0.5"
+      className="flex items-center gap-0.5"
       role="group"
       aria-label={label}
     >

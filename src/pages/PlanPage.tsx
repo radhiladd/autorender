@@ -41,29 +41,29 @@ export function PlanPage() {
 
   return (
     <div className="px-6 pt-2 pb-5">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="text-[18px] font-semibold tracking-[-0.1px] text-[#111827]">{plan.name}</h2>
-          <p className="mt-1 text-[13px] text-ink-3">
-            File renders into folders, or leave them on the session they were generated in.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setNewFolder(true)}
-          className="inline-flex h-8 items-center gap-1 rounded-[6px] border border-line-strong bg-white px-3 text-[12px] font-medium text-ink-2 hover:bg-inset"
-        >
-          <Plus size={11} weight="bold" />
-          New folder
-        </button>
+      <div className="mb-6">
+        <h2 className="text-[18px] font-semibold tracking-[-0.1px] text-[#111827]">{plan.name}</h2>
+        <p className="mt-1 text-[13px] text-ink-3">
+          File renders into folders, or leave them on the session they were generated in.
+        </p>
       </div>
 
       <section className="mb-8">
         <div className="mb-2 flex items-center justify-between gap-3">
           <h3 className="text-[11px] font-medium uppercase tracking-[0.4px] text-ink-3">Folders</h3>
-          {folders.length > 0 && (
-            <ViewToggle value={view} onChange={setView} label="Folder layout" />
-          )}
+          <div className="flex items-center gap-2">
+            {folders.length > 0 && (
+              <ViewToggle value={view} onChange={setView} label="Folder layout" />
+            )}
+            <button
+              type="button"
+              onClick={() => setNewFolder(true)}
+              className="inline-flex h-7 items-center gap-1 rounded-[6px] border border-line-strong bg-white px-2.5 text-[11px] font-medium text-ink-2 hover:bg-inset"
+            >
+              <Plus size={10} weight="bold" />
+              New folder
+            </button>
+          </div>
         </div>
         {folders.length === 0 ? (
           <button
