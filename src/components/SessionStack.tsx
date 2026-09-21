@@ -22,7 +22,7 @@ export function SessionStack({ session }: { session: Session }) {
 
   return (
     <section className="contact-sheet flex cursor-pointer items-stretch gap-12 p-4 transition-shadow hover:shadow-md">
-      <div className="flex w-64 shrink-0 gap-6 border-r border-line pr-12 py-0.5">
+      <div className="flex w-[296px] shrink-0 gap-6 border-r border-line pr-12 py-0.5">
         <div className="min-w-0 flex-1 space-y-1.5">
           <h3 className="truncate text-[13px] font-medium text-ink-2">
             {plan?.name ?? 'Untitled plan'}
@@ -54,7 +54,7 @@ export function SessionStack({ session }: { session: Session }) {
 }
 
 function SessionActions({
-  session,
+  session: _session,
   renders,
 }: {
   session: Session
