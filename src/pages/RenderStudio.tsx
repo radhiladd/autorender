@@ -57,7 +57,7 @@ import type { StyleParams } from '../types'
 const promptBox =
   'rounded-[8px] border border-[#ededed] bg-[#f7f7f7] focus-within:border-line-strong'
 const promptInput =
-  'block max-h-40 w-full resize-none overflow-y-auto bg-transparent px-3 pt-2.5 pb-1 text-[13px] leading-5 text-ink focus:outline-none'
+  'block max-h-40 w-full resize-none overflow-y-auto bg-transparent px-3 pt-2.5 pb-3 text-[13px] leading-5 text-ink focus:outline-none'
 
 function RenderCountPicker({
   id,
@@ -441,13 +441,13 @@ export function RenderStudio() {
                 />
                 <div className="ml-auto">
                   <Button
-                    size="base"
+                    size="sm"
                     iconLeft="sparkle"
                     disabled={!refineText.trim()}
                     loading={generating}
                     onClick={refine}
                   >
-                    Refine Render
+                    Refine
                   </Button>
                 </div>
               </div>
@@ -472,7 +472,7 @@ export function RenderStudio() {
                 />
                 <div className="ml-auto">
                   <Button
-                    size="base"
+                    size="sm"
                     iconLeft="sparkle"
                     disabled={!style}
                     loading={generating}
