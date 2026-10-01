@@ -85,7 +85,7 @@ export function Lightbox() {
                 {collections.map((c) => (
                   <Link
                     key={c.id}
-                    to={`/autorender/collections/${c.id}`}
+                    to={`/autorender/folders/${c.id}`}
                     onClick={closeLightbox}
                     className="inline-flex h-6 items-center gap-1 rounded-full bg-white/12 px-2 text-[12px] text-white/85 hover:bg-white/18"
                   >

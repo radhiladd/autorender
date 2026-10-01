@@ -37,7 +37,11 @@ export function NameDialog({
           />
         </label>
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" className="h-8 px-3 text-[13px] text-ink-3 hover:text-ink" onClick={onClose}>
+          <button
+            type="button"
+            className="h-8 px-3 text-[13px] text-ink-3 hover:text-ink"
+            onClick={onClose}
+          >
             Cancel
           </button>
           <button

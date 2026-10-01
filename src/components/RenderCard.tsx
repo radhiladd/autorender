@@ -141,7 +141,7 @@ export function RenderCard({
                       Rename
                     </MenuItem>
                     <MenuItem icon={<Cards size={14} />} onClick={() => setPicking(true)}>
-                      Add to collection
+                      Add to folder
                     </MenuItem>
                     {current && (
                       <MenuItem
@@ -173,7 +173,7 @@ export function RenderCard({
                 ) : (
                   <>
                     <MenuItem icon={<CaretLeft size={12} />} onClick={() => setPicking(false)}>
-                      <span className="text-[12px] text-ink-3">Add to collection</span>
+                      <span className="text-[12px] text-ink-3">Add to folder</span>
                     </MenuItem>
                     <div className="my-1 border-t border-line" />
                     <div className="max-h-64 overflow-y-auto">
@@ -208,7 +208,7 @@ export function RenderCard({
                         setCreating(true)
                       }}
                     >
-                      New collection…
+                      New folder…
                     </MenuItem>
                   </>
                 )}
@@ -232,7 +232,7 @@ export function RenderCard({
       )}
       {creating && (
         <NameDialog
-          title="New collection"
+          title="New folder"
           label="Name"
           initial=""
           confirmLabel="Create and add"

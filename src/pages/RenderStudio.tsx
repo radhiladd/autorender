@@ -152,9 +152,7 @@ export function useSaveRender() {
     const planId = persist()
     if (!planId) return
     const collectionId = draft.collectionId
-    navigate(
-      collectionId ? `/autorender/collections/${collectionId}` : `/autorender/plans/${planId}`,
-    )
+    navigate(collectionId ? `/autorender/folders/${collectionId}` : `/autorender/plans/${planId}`)
   }
 
   return { save, persist, canSave, keptCount: kept.length }

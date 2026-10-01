@@ -27,7 +27,7 @@ export function LibraryHome() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const [creating, setCreating] = useState(false)
-  const tab = params.get('tab') === 'collections' ? 'collections' : 'plans'
+  const tab = params.get('tab') === 'folders' ? 'folders' : 'plans'
   const q = params.get('q') ?? ''
   const searching = q.trim().length > 0
   const [view, setView] = useState<FolderView>(loadView)
@@ -116,7 +116,7 @@ export function LibraryHome() {
         value={tab}
         onValueChange={(next) => {
           const nextParams = new URLSearchParams(params)
-          if (next === 'collections') nextParams.set('tab', 'collections')
+          if (next === 'folders') nextParams.set('tab', 'folders')
           else nextParams.delete('tab')
           setParams(nextParams, { replace: true })
         }}
@@ -126,27 +126,27 @@ export function LibraryHome() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <TabsList>
             <TabsTrigger value="plans">Plans ({plans.length})</TabsTrigger>
-            <TabsTrigger value="collections">Collections ({collections.length})</TabsTrigger>
+            <TabsTrigger value="folders">Folders ({collections.length})</TabsTrigger>
           </TabsList>
           {tab === 'plans' ? (
             <ViewToggle value={view} onChange={setView} label="Plan layout" />
           ) : (
             <Button size="sm" variant="outline" onClick={() => setCreating(true)}>
-              New collection
+              New folder
             </Button>
           )}
         </div>
         <TabsContent value="plans" className="pt-0">
           {planGrid}
         </TabsContent>
-        <TabsContent value="collections" className="pt-0">
+        <TabsContent value="folders" className="pt-0">
           {collections.length === 0 ? (
             <button
               type="button"
               onClick={() => setCreating(true)}
               className="w-full rounded-lg border border-dashed border-line-strong bg-inset px-4 py-10 text-center text-[13px] text-ink-3 hover:bg-paper"
             >
-              No collections yet. Group renders from any plan for a campaign or listing.
+              No folders yet. Group renders from any plan for a campaign or listing.
             </button>
           ) : (
             <CollectionTable collections={collections} />
@@ -155,7 +155,7 @@ export function LibraryHome() {
       </Tabs>
       {creating && (
         <NameDialog
-          title="New collection"
+          title="New folder"
           label="Name"
           initial=""
           confirmLabel="Create"
@@ -163,7 +163,7 @@ export function LibraryHome() {
           onSubmit={(name) => {
             const id = createCollection(name)
             setCreating(false)
-            navigate(`/autorender/collections/${id}`)
+            navigate(`/autorender/folders/${id}`)
           }}
         />
       )}

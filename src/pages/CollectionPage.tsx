@@ -49,7 +49,7 @@ export function CollectionPage() {
         <div className="flex shrink-0 items-center gap-2">
           {isGroup && (
             <Button size="sm" variant="outline" onClick={() => setDialog('child')}>
-              New collection inside
+              New folder inside
             </Button>
           )}
           <Button size="sm" variant="ghost" onClick={() => setDialog('rename')}>
@@ -64,7 +64,7 @@ export function CollectionPage() {
       {children.length > 0 && (
         <section className="mb-8">
           <h3 className="mb-2 text-[11px] font-medium uppercase tracking-[0.4px] text-ink-3">
-            Collections
+            Folders
           </h3>
           <CollectionTable collections={children} />
         </section>
@@ -74,12 +74,12 @@ export function CollectionPage() {
         renders={renders}
         collectionId={collection.id}
         title={children.length > 0 ? 'All renders in this group' : 'Renders'}
-        empty="No renders yet. Use “Add to collection” on any render to add it here."
+        empty="No renders yet. Use “Add to folder” on any render to add it here."
       />
 
       {dialog === 'rename' && (
         <NameDialog
-          title="Rename collection"
+          title="Rename folder"
           label="Name"
           initial={collection.name}
           confirmLabel="Save"
@@ -92,7 +92,7 @@ export function CollectionPage() {
       )}
       {dialog === 'child' && (
         <NameDialog
-          title={`New collection in ${collection.name}`}
+          title={`New folder in ${collection.name}`}
           label="Name"
           initial=""
           confirmLabel="Create"
@@ -100,7 +100,7 @@ export function CollectionPage() {
           onSubmit={(name) => {
             const id = createCollection(name, collection.id)
             setDialog(null)
-            navigate(`/autorender/collections/${id}`)
+            navigate(`/autorender/folders/${id}`)
           }}
         />
       )}
@@ -108,14 +108,14 @@ export function CollectionPage() {
         <DialogOverlay>
           <DialogContent size="sm">
             <DialogHeader>
-              <DialogTitle>Delete collection?</DialogTitle>
+              <DialogTitle>Delete folder?</DialogTitle>
               <DialogClose />
             </DialogHeader>
             <DialogBody>
               <p className="text-[13px] leading-5 text-ink-2">
                 “{collection.name}” will be removed. Its renders stay in their plans and sessions.
                 {children.length > 0 &&
-                  ` The ${children.length} ${children.length === 1 ? 'collection' : 'collections'} inside will move to the top level.`}
+                  ` The ${children.length} ${children.length === 1 ? 'folder' : 'folders'} inside will move to the top level.`}
               </p>
             </DialogBody>
             <DialogFooter>
@@ -130,7 +130,7 @@ export function CollectionPage() {
                   deleteCollection(collection.id)
                   navigate(
                     collection.parentId
-                      ? `/autorender/collections/${collection.parentId}`
+                      ? `/autorender/folders/${collection.parentId}`
                       : '/autorender/renders',
                   )
                 }}

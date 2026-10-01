@@ -46,7 +46,7 @@ export const PLACEHOLDER_COPY: Record<Exclude<NavId, 'autorender'>, { title: str
   },
   plans: {
     title: 'Plans',
-    body: 'The plan library stays in Config. AutoRender renders stay with their plan and session, and can be grouped into collections.',
+    body: 'The plan library stays in Config. AutoRender renders stay with their plan and session, and can be grouped into folders.',
   },
   communities: {
     title: 'Communities',

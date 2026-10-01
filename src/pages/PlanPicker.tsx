@@ -62,11 +62,15 @@ export function PlanPicker({ onClose }: { onClose: () => void }) {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 id="plan-picker-title" className="text-[16px] font-semibold tracking-[-0.1px] text-[#111827]">
+            <h2
+              id="plan-picker-title"
+              className="text-[16px] font-semibold tracking-[-0.1px] text-[#111827]"
+            >
               Select a plan
             </h2>
             <p className="mt-1 text-[13px] text-ink-3">
-              The render uses this plan’s elevation and options. You’ll set the camera and style next.
+              The render uses this plan’s elevation and options. You’ll set the camera and style
+              next.
             </p>
           </div>
           <button

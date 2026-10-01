@@ -46,7 +46,7 @@ function CollectionRow({
           <span className="w-5 shrink-0" />
         )}
         <Link
-          to={`/autorender/collections/${collection.id}`}
+          to={`/autorender/folders/${collection.id}`}
           className="flex min-w-0 flex-1 items-center gap-2.5"
         >
           <span className="still flex h-7 w-10 shrink-0 items-center justify-center overflow-hidden rounded-[4px] border border-line bg-inset text-ink-4">
@@ -61,7 +61,7 @@ function CollectionRow({
           <span className="truncate font-medium text-ink-2 hover:underline">{collection.name}</span>
           {expandable && (
             <span className="shrink-0 text-[12px] text-ink-4">
-              {children.length} {children.length === 1 ? 'collection' : 'collections'}
+              {children.length} {children.length === 1 ? 'folder' : 'folders'}
             </span>
           )}
         </Link>

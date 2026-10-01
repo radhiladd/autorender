@@ -376,7 +376,7 @@ export function Breadcrumb({ items }: { items: { label: string; to?: string }[] 
 function HeaderBreadcrumbs() {
   const location = useLocation()
   const { state } = useLibrary()
-  const collectionMatch = location.pathname.match(/^\/autorender\/collections\/([^/]+)/)
+  const collectionMatch = location.pathname.match(/^\/autorender\/folders\/([^/]+)/)
   const planMatch = location.pathname.match(/^\/autorender\/plans\/([^/]+)/)
   const items: { label: string; to?: string }[] = []
   if (collectionMatch) {
@@ -384,8 +384,8 @@ function HeaderBreadcrumbs() {
     const parent = state.collections.find((c) => c.id === collection?.parentId)
     items.push(
       { label: 'Library', to: '/autorender' },
-      ...(parent ? [{ label: parent.name, to: `/autorender/collections/${parent.id}` }] : []),
-      { label: collection?.name ?? 'Collection' },
+      ...(parent ? [{ label: parent.name, to: `/autorender/folders/${parent.id}` }] : []),
+      { label: collection?.name ?? 'Folder' },
     )
   } else if (location.pathname === '/autorender/renders') {
     items.push({ label: 'Library', to: '/autorender' }, { label: 'Renders' })

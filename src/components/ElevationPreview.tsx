@@ -7,11 +7,7 @@ const TRIM = '#d4d4d4'
 
 function Frame({ children }: { children: ReactNode }) {
   return (
-    <svg
-      viewBox="0 0 120 88"
-      className="h-full w-full"
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 120 88" className="h-full w-full" aria-hidden="true">
       <rect width="120" height="88" fill="#f5f5f5" />
       <line x1="8" y1="78" x2="112" y2="78" stroke={STROKE} strokeWidth="1.2" />
       {children}

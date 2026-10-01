@@ -49,8 +49,8 @@ export function PlanPage() {
       <div className="mb-4">
         <h2 className="text-[18px] font-semibold tracking-[-0.1px] text-[#111827]">{plan.name}</h2>
         <p className="mt-1 text-[13px] text-ink-3">
-          Every render generated for this plan. Add renders to collections to group them for a
-          campaign or listing.
+          Every render generated for this plan. Add renders to folders to group them for a campaign
+          or listing.
         </p>
       </div>
 

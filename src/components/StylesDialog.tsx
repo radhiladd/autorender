@@ -90,7 +90,12 @@ export function StylesDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
-      <button type="button" aria-label="Close dialog" className="absolute inset-0 bg-[#171717]/40" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="Close dialog"
+        className="absolute inset-0 bg-[#171717]/40"
+        onClick={onClose}
+      />
       <div
         role="dialog"
         aria-modal="true"
@@ -99,7 +104,10 @@ export function StylesDialog({ onClose }: { onClose: () => void }) {
       >
         <div className="border-b border-line px-5 py-4">
           <div className="flex items-center justify-between gap-4">
-            <h2 id="styles-title" className="text-[16px] font-semibold tracking-[-0.1px] text-[#111827]">
+            <h2
+              id="styles-title"
+              className="text-[16px] font-semibold tracking-[-0.1px] text-[#111827]"
+            >
               Render Styles
             </h2>
             <button
@@ -138,7 +146,9 @@ export function StylesDialog({ onClose }: { onClose: () => void }) {
                     className="flex items-center gap-4 px-5 py-3 hover:bg-inset/50"
                   >
                     <div className="w-28 shrink-0">
-                      <div className="truncate text-[14px] font-medium text-ink-2">{style.name}</div>
+                      <div className="truncate text-[14px] font-medium text-ink-2">
+                        {style.name}
+                      </div>
                       <div className="mt-0.5 tabular-nums text-[12px] text-ink-4">
                         {used} {used === 1 ? 'session' : 'sessions'}
                       </div>
@@ -146,7 +156,9 @@ export function StylesDialog({ onClose }: { onClose: () => void }) {
                     <div className="min-w-0 flex-1">
                       <StylePreviewChips params={style.params} />
                       {style.description && (
-                        <div className="mt-1 truncate text-[12px] text-ink-3">{style.description}</div>
+                        <div className="mt-1 truncate text-[12px] text-ink-3">
+                          {style.description}
+                        </div>
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
@@ -216,7 +228,12 @@ function StyleEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
-      <button type="button" aria-label="Close dialog" className="absolute inset-0 bg-[#171717]/40" onClick={onBack} />
+      <button
+        type="button"
+        aria-label="Close dialog"
+        className="absolute inset-0 bg-[#171717]/40"
+        onClick={onBack}
+      />
       <div
         role="dialog"
         aria-modal="true"
@@ -260,17 +277,29 @@ function StyleEditor({
 
           <fieldset>
             <legend className="mb-2 text-[12px] font-medium text-ink-2">Render Style</legend>
-            <ChipRow options={RENDER_STYLES} value={params.renderStyle} onChange={(v) => set('renderStyle', v)} />
+            <ChipRow
+              options={RENDER_STYLES}
+              value={params.renderStyle}
+              onChange={(v) => set('renderStyle', v)}
+            />
           </fieldset>
 
           <fieldset>
             <legend className="mb-2 text-[12px] font-medium text-ink-2">Time of Day</legend>
-            <ChipRow options={TIMES} value={params.timeOfDay} onChange={(v) => set('timeOfDay', v)} />
+            <ChipRow
+              options={TIMES}
+              value={params.timeOfDay}
+              onChange={(v) => set('timeOfDay', v)}
+            />
           </fieldset>
 
           <fieldset>
             <legend className="mb-2 text-[12px] font-medium text-ink-2">Weather</legend>
-            <ChipRow options={WEATHERS} value={params.weather} onChange={(v) => set('weather', v)} />
+            <ChipRow
+              options={WEATHERS}
+              value={params.weather}
+              onChange={(v) => set('weather', v)}
+            />
           </fieldset>
 
           <fieldset>
@@ -295,13 +324,23 @@ function StyleEditor({
           </fieldset>
 
           <fieldset>
-            <legend className="mb-2 text-[12px] font-medium text-ink-2">Flowerbed Ground Cover</legend>
-            <ChipRow options={FLOWERBED} value={params.flowerbedCover} onChange={(v) => set('flowerbedCover', v)} />
+            <legend className="mb-2 text-[12px] font-medium text-ink-2">
+              Flowerbed Ground Cover
+            </legend>
+            <ChipRow
+              options={FLOWERBED}
+              value={params.flowerbedCover}
+              onChange={(v) => set('flowerbedCover', v)}
+            />
           </fieldset>
 
           <fieldset>
             <legend className="mb-2 text-[12px] font-medium text-ink-2">Yard Ground Cover</legend>
-            <ChipRow options={YARD} value={params.yardCover} onChange={(v) => set('yardCover', v)} />
+            <ChipRow
+              options={YARD}
+              value={params.yardCover}
+              onChange={(v) => set('yardCover', v)}
+            />
           </fieldset>
 
           <fieldset>
@@ -311,7 +350,11 @@ function StyleEditor({
 
           <fieldset>
             <legend className="mb-2 text-[12px] font-medium text-ink-2">Window Treatments</legend>
-            <ChipRow options={WINDOWS} value={params.windowTreatments} onChange={(v) => set('windowTreatments', v)} />
+            <ChipRow
+              options={WINDOWS}
+              value={params.windowTreatments}
+              onChange={(v) => set('windowTreatments', v)}
+            />
           </fieldset>
 
           <fieldset>

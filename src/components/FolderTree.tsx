@@ -123,7 +123,7 @@ export function FolderTree({ onNewRender }: { onNewRender: () => void }) {
   const [creating, setCreating] = useState(false)
 
   const planMatch = matchPath('/autorender/plans/:planId', pathname)
-  const collectionMatch = matchPath('/autorender/collections/:collectionId', pathname)
+  const collectionMatch = matchPath('/autorender/folders/:collectionId', pathname)
   const activePlanId = planMatch?.params.planId ?? null
   const activeCollectionId = collectionMatch?.params.collectionId ?? null
   const onRenders = pathname === '/autorender/renders'
@@ -192,7 +192,7 @@ export function FolderTree({ onNewRender }: { onNewRender: () => void }) {
         to="/autorender/renders?filter=uncollected"
         depth={0}
         icon={<TrayArrowDown size={14} />}
-        label="Not in a collection"
+        label="Not in a folder"
         count={uncollectedCount}
         active={uncollected}
       />
@@ -215,10 +215,8 @@ export function FolderTree({ onNewRender }: { onNewRender: () => void }) {
         ))}
       </ul>
 
-      <SectionLabel
-        action={<SectionAdd label="New collection" onClick={() => setCreating(true)} />}
-      >
-        Collections
+      <SectionLabel action={<SectionAdd label="New folder" onClick={() => setCreating(true)} />}>
+        Folders
       </SectionLabel>
       {topCollections.length === 0 ? (
         <button
@@ -237,7 +235,7 @@ export function FolderTree({ onNewRender }: { onNewRender: () => void }) {
             return (
               <li key={collection.id}>
                 <TreeRow
-                  to={`/autorender/collections/${collection.id}`}
+                  to={`/autorender/folders/${collection.id}`}
                   depth={0}
                   icon={children.length > 0 ? <CardsThree size={14} /> : <Cards size={14} />}
                   label={collection.name}
@@ -252,7 +250,7 @@ export function FolderTree({ onNewRender }: { onNewRender: () => void }) {
                     {children.map((child) => (
                       <li key={child.id}>
                         <TreeRow
-                          to={`/autorender/collections/${child.id}`}
+                          to={`/autorender/folders/${child.id}`}
                           depth={1}
                           icon={<Cards size={14} />}
                           label={child.name}
@@ -271,7 +269,7 @@ export function FolderTree({ onNewRender }: { onNewRender: () => void }) {
 
       {creating && (
         <NameDialog
-          title="New collection"
+          title="New folder"
           label="Name"
           initial=""
           confirmLabel="Create"
@@ -279,7 +277,7 @@ export function FolderTree({ onNewRender }: { onNewRender: () => void }) {
           onSubmit={(name) => {
             const id = createCollection(name)
             setCreating(false)
-            navigate(`/autorender/collections/${id}`)
+            navigate(`/autorender/folders/${id}`)
           }}
         />
       )}

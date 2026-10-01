@@ -14,7 +14,7 @@ import { RenderFlowProvider } from './store/renderFlow'
 
 function LegacyFolderRedirect() {
   const { folderId } = useParams()
-  return <Navigate to={`/autorender/collections/${folderId}`} replace />
+  return <Navigate to={`/autorender/folders/${folderId}`} replace />
 }
 
 export default function App() {
@@ -47,8 +47,8 @@ export default function App() {
                 element={<LegacyFolderRedirect />}
               />
               <Route path="/autorender/renders" element={<RendersPage />} />
-            <Route path="/autorender/sessions" element={<SessionsPage />} />
-              <Route path="/autorender/collections/:collectionId" element={<CollectionPage />} />
+              <Route path="/autorender/sessions" element={<SessionsPage />} />
+              <Route path="/autorender/folders/:collectionId" element={<CollectionPage />} />
               <Route path="/dashboard" element={<PlaceholderPage id="dashboard" />} />
               <Route path="/plans" element={<PlaceholderPage id="plans" />} />
               <Route path="/communities" element={<PlaceholderPage id="communities" />} />
