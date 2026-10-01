@@ -1,4 +1,4 @@
-import type { Folder, Plan, Render, Session } from '../types'
+import type { Collection, Plan, Render, Session } from '../types'
 
 export function renderSrc(file: string) {
   const base = import.meta.env.BASE_URL
@@ -24,7 +24,14 @@ export function formatSessionDateTime(iso: string) {
 }
 
 export function styleChips(label: string) {
-  return [...new Set(label.split('·').map((part) => part.trim()).filter(Boolean))]
+  return [
+    ...new Set(
+      label
+        .split('·')
+        .map((part) => part.trim())
+        .filter(Boolean),
+    ),
+  ]
 }
 
 export function replaceStyleName(label: string, from: string, to: string) {
@@ -55,23 +62,41 @@ export function lastActivityIso(renders: Render[], planId: string) {
   return dates.sort().at(-1) ?? null
 }
 
-export function lastFolderActivityIso(renders: Render[], folderId: string) {
-  const dates = renders.filter((r) => r.folderId === folderId).map((r) => r.createdAt)
-  if (dates.length === 0) return null
-  return dates.sort().at(-1) ?? null
+export function collectionScope(collections: Collection[], collectionId: string) {
+  return [collectionId, ...collections.filter((c) => c.parentId === collectionId).map((c) => c.id)]
+}
+
+export function rendersInCollection(
+  renders: Render[],
+  collections: Collection[],
+  collectionId: string,
+  includeChildren = true,
+) {
+  const scope = includeChildren ? collectionScope(collections, collectionId) : [collectionId]
+  return renders
+    .filter((r) => r.collectionIds.some((id) => scope.includes(id)))
+    .slice()
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+export function sessionNumbers(sessions: Session[]) {
+  const numbers = new Map<string, number>()
+  const byPlan = new Map<string, Session[]>()
+  for (const session of sessions) {
+    byPlan.set(session.planId, [...(byPlan.get(session.planId) ?? []), session])
+  }
+  for (const list of byPlan.values()) {
+    list
+      .slice()
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .forEach((session, i) => numbers.set(session.id, i + 1))
+  }
+  return numbers
 }
 
 export function latestCover(renders: Render[], planId: string) {
   const list = renders
     .filter((r) => r.planId === planId)
-    .slice()
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  return list[0] ?? null
-}
-
-export function folderCover(renders: Render[], folderId: string) {
-  const list = renders
-    .filter((r) => r.folderId === folderId)
     .slice()
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   return list[0] ?? null
@@ -107,13 +132,6 @@ export function recentSessions(sessions: Session[], renders: Render[], limit = 8
     .slice(0, limit)
 }
 
-export function unfiledInSession(renders: Render[], sessionId: string) {
-  return renders
-    .filter((r) => r.sessionId === sessionId && r.folderId == null)
-    .slice()
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-}
-
 export function sessionsForPlan(sessions: Session[], planId: string) {
   return sessions
     .filter((s) => s.planId === planId)
@@ -121,8 +139,9 @@ export function sessionsForPlan(sessions: Session[], planId: string) {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
-export function foldersForPlan(folders: Folder[], planId: string) {
-  return folders.filter((f) => f.planId === planId)
+export function collectionsForPlan(collections: Collection[], renders: Render[], planId: string) {
+  const ids = new Set(renders.filter((r) => r.planId === planId).flatMap((r) => r.collectionIds))
+  return collections.filter((c) => ids.has(c.id))
 }
 
 export function matchesQuery(query: string, ...values: Array<string | null | undefined>) {

@@ -95,7 +95,15 @@ const BY_PLAN: Record<string, (typeof VARIANTS)[number]> = {
   millhouse: Farmhouse,
 }
 
-export function ElevationPreview({ planId }: { planId: string }) {
+export function ElevationPreview({
+  planId,
+  width = 96,
+  height = 72,
+}: {
+  planId: string
+  width?: number
+  height?: number
+}) {
   const Drawing =
     BY_PLAN[planId] ??
     VARIANTS[Math.abs([...planId].reduce((n, c) => n + c.charCodeAt(0), 0)) % VARIANTS.length]
@@ -103,7 +111,7 @@ export function ElevationPreview({ planId }: { planId: string }) {
   return (
     <div
       className="shrink-0 overflow-hidden rounded-[6px] border border-line bg-[#f5f5f5]"
-      style={{ width: 96, height: 72 }}
+      style={{ width, height }}
       title="Front elevation"
     >
       <Drawing />

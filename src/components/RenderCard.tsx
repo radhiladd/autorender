@@ -1,5 +1,15 @@
-import { DotsThree, DownloadSimple, FolderSimple, PencilSimple } from '@phosphor-icons/react'
+import {
+  CaretLeft,
+  Cards,
+  Check,
+  DotsThree,
+  DownloadSimple,
+  MinusCircle,
+  PencilSimple,
+  Plus,
+} from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { renderSrc } from '../lib/format'
 import { useLibrary } from '../store/library'
 import type { Render } from '../types'
@@ -8,32 +18,62 @@ import { NameDialog } from './NameDialog'
 export function RenderCard({
   render,
   compact,
+  collectionId,
 }: {
   render: Render
   compact?: boolean
+  collectionId?: string
 }) {
-  const { state, openLightbox, renameRender, moveRender } = useLibrary()
+  const { state, openLightbox, renameRender, setRenderInCollection, createCollection } =
+    useLibrary()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [moving, setMoving] = useState(false)
+  const [picking, setPicking] = useState(false)
   const [renaming, setRenaming] = useState(false)
+  const [creating, setCreating] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
-  const folders = state.folders.filter((f) => f.planId === render.planId)
+  const popupRef = useRef<HTMLDivElement>(null)
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
+  const current = state.collections.find((c) => c.id === collectionId)
+  const pickerRows = state.collections
+    .filter((c) => !c.parentId)
+    .flatMap((c) => [
+      { collection: c, nested: false },
+      ...state.collections
+        .filter((child) => child.parentId === c.id)
+        .map((child) => ({ collection: child, nested: true })),
+    ])
+
+  const closeMenu = () => {
+    setMenuOpen(false)
+    setPicking(false)
+  }
 
   useEffect(() => {
     if (!menuOpen) return
     const onDoc = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) {
+      const target = e.target as Node
+      if (!menuRef.current?.contains(target) && !popupRef.current?.contains(target)) {
         setMenuOpen(false)
-        setMoving(false)
+        setPicking(false)
       }
     }
+    const close = () => {
+      setMenuOpen(false)
+      setPicking(false)
+    }
     document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
+    window.addEventListener('resize', close)
+    document.addEventListener('scroll', close, true)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      window.removeEventListener('resize', close)
+      document.removeEventListener('scroll', close, true)
+    }
   }, [menuOpen])
 
   return (
     <>
-      <article className={`group relative ${compact ? 'w-36 shrink-0' : ''}`}>
+      <article className={`group relative ${compact ? 'w-[196px] shrink-0' : ''}`}>
         <button
           type="button"
           onClick={() => openLightbox(render.id)}
@@ -57,93 +97,124 @@ export function RenderCard({
           </div>
           <div className="mt-2 min-w-0">
             <div className="truncate text-[13px] font-medium text-ink-2">{render.name}</div>
-            <div className="truncate text-[12px] text-ink-4">
-              {render.downloadable ? 'Ready' : 'Generating'}
-            </div>
+            {!render.downloadable && (
+              <div className="truncate text-[12px] text-ink-4">Generating</div>
+            )}
           </div>
         </button>
-        <div className="absolute top-2 right-2" ref={menuRef}>
+        <div
+          className={`absolute top-2 right-2 transition-opacity group-hover:opacity-100 focus-within:opacity-100 ${menuOpen ? 'opacity-100' : 'opacity-0'}`}
+          ref={menuRef}
+        >
           <button
             type="button"
             aria-label="Render actions"
             className="rounded-[6px] border border-line bg-white p-1 text-ink-3 shadow-sm hover:bg-inset"
             onClick={(e) => {
               e.stopPropagation()
+              const rect = e.currentTarget.getBoundingClientRect()
+              setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
               setMenuOpen((v) => !v)
-              setMoving(false)
+              setPicking(false)
             }}
           >
             <DotsThree size={16} weight="bold" />
           </button>
-          {menuOpen && (
-            <div className="ha-menu absolute right-0 z-20 mt-1 w-48 py-1">
-              {!moving ? (
-                <>
-                  <MenuItem
-                    icon={<PencilSimple size={14} />}
-                    onClick={() => {
-                      setMenuOpen(false)
-                      setRenaming(true)
-                    }}
-                  >
-                    Rename
-                  </MenuItem>
-                  <MenuItem
-                    icon={<FolderSimple size={14} />}
-                    onClick={() => setMoving(true)}
-                  >
-                    Move to folder
-                  </MenuItem>
-                  {render.downloadable ? (
-                    <a
-                      href={renderSrc(render.image)}
-                      download={`${render.name}.jpg`}
-                      className="flex w-full items-center gap-2 px-3 py-1.5 text-[13px] text-ink-2 hover:bg-inset"
-                    >
-                      <DownloadSimple size={14} />
-                      Download
-                    </a>
-                  ) : (
-                    <div className="flex items-center gap-2 px-3 py-1.5 text-[13px] text-ink-4">
-                      <DownloadSimple size={14} />
-                      Download
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div className="px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.4px] text-ink-4">
-                    File in
-                  </div>
-                  <MenuItem
-                    onClick={() => {
-                      moveRender(render.id, null)
-                      setMenuOpen(false)
-                      setMoving(false)
-                    }}
-                  >
-                    Unfiled (session stack)
-                  </MenuItem>
-                  {folders.map((f) => (
+          {menuOpen &&
+            menuPos &&
+            createPortal(
+              <div
+                ref={popupRef}
+                onClick={(e) => e.stopPropagation()}
+                className="ha-menu fixed z-50 w-56 py-1"
+                style={{ top: menuPos.top, right: menuPos.right }}
+              >
+                {!picking ? (
+                  <>
                     <MenuItem
-                      key={f.id}
+                      icon={<PencilSimple size={14} />}
                       onClick={() => {
-                        moveRender(render.id, f.id)
-                        setMenuOpen(false)
-                        setMoving(false)
+                        closeMenu()
+                        setRenaming(true)
                       }}
                     >
-                      {f.name}
-                      {render.folderId === f.id ? ' · here' : ''}
+                      Rename
                     </MenuItem>
-                  ))}
-                  {folders.length === 0 && (
-                    <div className="px-3 py-2 text-[12px] text-ink-4">No folders in this plan yet</div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
+                    <MenuItem icon={<Cards size={14} />} onClick={() => setPicking(true)}>
+                      Add to collection
+                    </MenuItem>
+                    {current && (
+                      <MenuItem
+                        icon={<MinusCircle size={14} />}
+                        onClick={() => {
+                          setRenderInCollection(render.id, current.id, false)
+                          closeMenu()
+                        }}
+                      >
+                        <span className="truncate">Remove from {current.name}</span>
+                      </MenuItem>
+                    )}
+                    {render.downloadable ? (
+                      <a
+                        href={renderSrc(render.image)}
+                        download={`${render.name}.jpg`}
+                        className="flex w-full items-center gap-2 px-3 py-1.5 text-[13px] text-ink-2 hover:bg-inset"
+                      >
+                        <DownloadSimple size={14} />
+                        Download
+                      </a>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-1.5 text-[13px] text-ink-4">
+                        <DownloadSimple size={14} />
+                        Download
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <MenuItem icon={<CaretLeft size={12} />} onClick={() => setPicking(false)}>
+                      <span className="text-[12px] text-ink-3">Add to collection</span>
+                    </MenuItem>
+                    <div className="my-1 border-t border-line" />
+                    <div className="max-h-64 overflow-y-auto">
+                      {pickerRows.map(({ collection, nested }) => {
+                        const checked = render.collectionIds.includes(collection.id)
+                        return (
+                          <button
+                            key={collection.id}
+                            type="button"
+                            role="menuitemcheckbox"
+                            aria-checked={checked}
+                            className={`flex w-full items-center gap-2 py-1.5 pr-3 text-left text-[13px] text-ink-2 hover:bg-inset ${nested ? 'pl-8' : 'pl-3'}`}
+                            onClick={() =>
+                              setRenderInCollection(render.id, collection.id, !checked)
+                            }
+                          >
+                            <span
+                              className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border ${checked ? 'border-ink bg-ink text-white' : 'border-line-strong bg-white'}`}
+                            >
+                              {checked && <Check size={10} weight="bold" />}
+                            </span>
+                            <span className="truncate">{collection.name}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <div className="my-1 border-t border-line" />
+                    <MenuItem
+                      icon={<Plus size={14} />}
+                      onClick={() => {
+                        closeMenu()
+                        setCreating(true)
+                      }}
+                    >
+                      New collection…
+                    </MenuItem>
+                  </>
+                )}
+              </div>,
+              document.body,
+            )}
         </div>
       </article>
       {renaming && (
@@ -156,6 +227,19 @@ export function RenderCard({
           onSubmit={(name) => {
             renameRender(render.id, name)
             setRenaming(false)
+          }}
+        />
+      )}
+      {creating && (
+        <NameDialog
+          title="New collection"
+          label="Name"
+          initial=""
+          confirmLabel="Create and add"
+          onClose={() => setCreating(false)}
+          onSubmit={(name) => {
+            createCollection(name, null, [render.id])
+            setCreating(false)
           }}
         />
       )}
@@ -175,7 +259,7 @@ function MenuItem({
   return (
     <button
       type="button"
-      className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink-2 hover:bg-inset"
+      className="flex w-full min-w-0 items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink-2 hover:bg-inset"
       onClick={onClick}
     >
       {icon}

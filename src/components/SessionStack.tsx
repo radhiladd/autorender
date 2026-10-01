@@ -1,79 +1,169 @@
-import { ArrowRight, Copy, DotsThree, DownloadSimple, Trash } from '@phosphor-icons/react'
-import { useEffect, useRef, useState } from 'react'
-import {
-  formatSessionDateTime,
-  personName,
-  renderSrc,
-  styleChips,
-  unfiledInSession,
-} from '../lib/format'
+import { ArrowSquareOut, Copy, DownloadSimple } from '@phosphor-icons/react'
+import { useNavigate } from 'react-router-dom'
+import { formatSessionDateTime, personName, renderSrc, rendersForSession } from '../lib/format'
+import { ASPECTS, CAMERAS, cameraLabel, useRenderFlow, type CameraId } from '../store/renderFlow'
 import { useLibrary } from '../store/library'
-import type { Session } from '../types'
+import type { Session, StyleParams } from '../types'
+import {
+  FLOWERBED,
+  MODES,
+  RENDER_STYLES,
+  SCENES,
+  STAGING,
+  TIMES,
+  WEATHERS,
+  WINDOWS,
+  YARD,
+} from './StylesDialog'
 import { RenderCard } from './RenderCard'
 
-export function SessionStack({ session }: { session: Session }) {
-  const { state } = useLibrary()
-  const renders = unfiledInSession(state.renders, session.id)
-  if (renders.length === 0) return null
+const OPTION_LIMIT = 3
 
-  const plan = state.plans.find((p) => p.id === session.planId)
-  const chips = styleChips(session.styleLabel)
-  const author = personName(session.createdBy)
-
-  return (
-    <section className="contact-sheet flex cursor-pointer items-stretch gap-12 p-4 transition-shadow hover:shadow-md">
-      <div className="flex w-[296px] shrink-0 gap-6 border-r border-line pr-12 py-0.5">
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <h3 className="truncate text-[13px] font-medium text-ink-2">
-            {plan?.name ?? 'Untitled plan'}
-          </h3>
-          <div className="flex flex-wrap gap-1">
-            {chips.map((chip) => (
-              <span
-                key={chip}
-                className="inline-flex h-[18px] items-center rounded-full border border-line bg-inset px-1.5 text-[10px] text-ink-2"
-              >
-                {chip}
-              </span>
-            ))}
-          </div>
-          <div className="pt-0.5 text-[11px] text-ink-4">
-            {author} · {formatSessionDateTime(session.createdAt)}
-          </div>
-        </div>
-        <PlanConfig planId={session.planId} />
-      </div>
-      <div className="flex min-w-0 flex-1 gap-3 overflow-x-auto pb-1">
-        {renders.map((render) => (
-          <RenderCard key={render.id} render={render} compact />
-        ))}
-      </div>
-      <SessionActions session={session} renders={renders} />
-    </section>
-  )
+const DEMO_CONFIGS: Record<string, { elevation: string; options: string[] }> = {
+  allison: {
+    elevation: 'Elevation A',
+    options: [
+      'Exterior · Front porch',
+      'Exterior · Board and batten siding',
+      'Roof · Metal accent roof',
+      'Garage · Carriage doors',
+      'Kitchen · Island extension',
+      'Kitchen · Quartz counters',
+      'Primary bath · Freestanding tub',
+      'Living · Fireplace',
+      'Flooring · Wide-plank oak',
+      'Lighting · Exterior sconces',
+      'Windows · Black frames',
+      'Patio · Covered extension',
+    ],
+  },
+  untitled: {
+    elevation: 'Elevation B',
+    options: [
+      'Exterior · Stone wainscot',
+      'Garage · Third bay',
+      'Kitchen · Walk-in pantry',
+      'Primary bath · Dual vanity',
+      'Living · Coffered ceiling',
+      'Flooring · Luxury vinyl plank',
+      'Windows · Transoms',
+      'Patio · Extended slab',
+    ],
+  },
+  cedar: {
+    elevation: 'Elevation A',
+    options: [
+      'Exterior · Cedar shake gables',
+      'Roof · Steeper pitch',
+      'Kitchen · Farmhouse sink',
+      'Living · Built-in shelving',
+      'Lighting · Pendant package',
+      'Patio · Pergola',
+    ],
+  },
+  millhouse: {
+    elevation: 'Elevation C',
+    options: [
+      'Exterior · Brick front',
+      'Garage · Side-load',
+      'Kitchen · Double ovens',
+      'Primary suite · Sitting area',
+      'Flooring · Tile entry',
+      'Windows · Grids',
+      'Lighting · Recessed package',
+      'Laundry · Sink',
+      'Patio · Outdoor kitchen',
+      'Bonus room · Finished',
+    ],
+  },
 }
 
-function SessionActions({
-  session: _session,
-  renders,
+type SessionView = {
+  planName: string
+  elevation: string | null
+  options: string[]
+  optionCount: number
+  styleId: string
+  styleName: string
+  styleParams: StyleParams | null
+  camera: CameraId
+  aspect: string
+  prompt: string
+}
+
+export function useSessionView(session: Session): SessionView {
+  const { state } = useLibrary()
+  const plan = state.plans.find((p) => p.id === session.planId)
+  const [styleName, cameraName] = session.styleLabel.split('·').map((part) => part.trim())
+  const style = state.styles.find((item) => item.name === styleName)
+  const setup = session.setup
+  const demo = DEMO_CONFIGS[session.planId]
+  const camera =
+    CAMERAS.find((item) => item.id === setup?.camera)?.id ??
+    CAMERAS.find((item) => item.label === cameraName)?.id ??
+    'front'
+
+  return {
+    planName: plan?.name ?? 'Untitled plan',
+    elevation: setup ? setup.elevation : (demo?.elevation ?? null),
+    options: setup ? setup.options : (demo?.options ?? []),
+    optionCount: setup ? setup.optionCount : (demo?.options.length ?? 0),
+    styleId: setup?.styleId ?? style?.id ?? state.styles[0]?.id ?? '',
+    styleName: setup?.styleName ?? styleName ?? 'Style',
+    styleParams: setup?.styleParams ?? style?.params ?? null,
+    camera,
+    aspect: setup?.aspect ?? '16:9',
+    prompt: setup?.prompt ?? '',
+  }
+}
+
+function labelFor(options: { value: string; label: string }[], value: string) {
+  return options.find((option) => option.value === value)?.label ?? value
+}
+
+export function inputChips(view: SessionView) {
+  const p = view.styleParams
+  const chips: { category: string; label: string }[] = []
+  if (p) {
+    chips.push(
+      { category: 'Render style', label: labelFor(RENDER_STYLES, p.renderStyle) },
+      { category: 'Time of day', label: labelFor(TIMES, p.timeOfDay) },
+      { category: 'Weather', label: labelFor(WEATHERS, p.weather) },
+      { category: 'Scene', label: labelFor(SCENES, p.scene) },
+      { category: 'Landscaping', label: `Landscaping ${p.landscaping}` },
+      { category: 'Flowerbed', label: labelFor(FLOWERBED, p.flowerbedCover) },
+      { category: 'Yard', label: labelFor(YARD, p.yardCover) },
+      { category: 'Staging', label: labelFor(STAGING, p.staging) },
+      { category: 'Windows', label: labelFor(WINDOWS, p.windowTreatments) },
+      { category: 'Mode', label: labelFor(MODES, p.mode) },
+    )
+  }
+  chips.push(
+    { category: 'Camera', label: cameraLabel(view.camera) },
+    { category: 'Aspect ratio', label: view.aspect },
+  )
+  return chips
+}
+
+export function SessionStack({
+  session,
+  highlighted = false,
 }: {
   session: Session
-  renders: ReturnType<typeof unfiledInSession>
+  highlighted?: boolean
 }) {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+  const { state, duplicateSession } = useLibrary()
+  const { seedFromSession } = useRenderFlow()
+  const view = useSessionView(session)
+  const renders = rendersForSession(state.renders, session.id)
+  if (renders.length === 0) return null
 
-  useEffect(() => {
-    if (!menuOpen) return
-    const onDoc = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [menuOpen])
+  const author = personName(session.createdBy)
+  const shown = view.options.slice(0, OPTION_LIMIT)
+  const hidden = view.optionCount - shown.length
 
-  const handleDownloadAll = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const downloadAll = () => {
     renders
       .filter((r) => r.downloadable)
       .forEach((r) => {
@@ -82,87 +172,136 @@ function SessionActions({
         a.download = `${r.name}.jpg`
         a.click()
       })
-    setMenuOpen(false)
   }
 
+  const open = () => {
+    seedFromSession({
+      planId: session.planId,
+      planName: view.planName,
+      styleId: view.styleId,
+      camera: view.camera,
+      summary: view.elevation
+        ? {
+            elevation: view.elevation,
+            palette: '',
+            garage: '',
+            optionCount: view.optionCount,
+            options: view.options,
+          }
+        : null,
+      styleParams: view.styleParams,
+      aspect: ASPECTS.find((item) => item === view.aspect),
+      prompt: view.prompt,
+    })
+    navigate(`/autorender/render/studio/${session.planId}`)
+  }
+
+  const iconButton =
+    'flex h-7 w-7 items-center justify-center rounded-[6px] text-ink-3 hover:bg-inset hover:text-ink'
+
   return (
-    <div className="relative flex shrink-0 items-start pt-0.5" ref={menuRef}>
-      <button
-        type="button"
-        aria-label="Session actions"
-        className="rounded-[6px] border border-line bg-white p-1 text-ink-3 shadow-sm hover:bg-inset"
-        onClick={(e) => {
-          e.stopPropagation()
-          setMenuOpen((v) => !v)
-        }}
-      >
-        <DotsThree size={16} weight="bold" />
-      </button>
-      {menuOpen && (
-        <div className="ha-menu absolute right-0 z-30 mt-8 w-44 py-1">
+    <section
+      id={`session-${session.id}`}
+      className={`contact-sheet flex h-[220px] scroll-mt-4 items-stretch gap-6 p-4 transition-shadow duration-500 ${
+        highlighted ? 'shadow-[0_0_0_2px_#1d4ed8]' : ''
+      }`}
+    >
+      <div className="flex w-[220px] shrink-0 flex-col gap-2">
+        <div className="flex items-center gap-1.5">
+          <h3 className="min-w-0 truncate text-[13px] font-medium text-ink-2">{view.planName}</h3>
+          <span className="shrink-0 rounded-full bg-inset px-1.5 text-[10px] font-medium leading-[18px] text-ink-3">
+            {renders.length} {renders.length === 1 ? 'render' : 'renders'}
+          </span>
+        </div>
+        {view.elevation && <div className="text-[12px] text-ink-2">{view.elevation}</div>}
+        <div className="text-[11px] leading-4 text-ink-3">
+          {view.optionCount === 0 ? (
+            'Default options'
+          ) : (
+            <>
+              {shown.map((option) => (
+                <div key={option} className="truncate">
+                  {option}
+                </div>
+              ))}
+              {hidden > 0 && (
+                <div className="group relative w-fit">
+                  <span className="cursor-help font-medium text-ink-2 underline decoration-dotted">
+                    + {hidden} more
+                  </span>
+                  <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden w-60 rounded-[8px] border border-line bg-white p-2.5 text-ink-2 shadow-md group-hover:block">
+                    {view.options.map((option) => (
+                      <div key={option} className="truncate">
+                        {option}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <div className="text-[11px] text-ink-4">
+          {author} · {formatSessionDateTime(session.createdAt)}
+        </div>
+        <div className="mt-auto flex items-center gap-1 pt-1">
           <button
             type="button"
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink-2 hover:bg-inset"
-            onClick={(e) => {
-              e.stopPropagation()
-              setMenuOpen(false)
-            }}
-          >
-            <ArrowRight size={14} />
-            Continue
-          </button>
-          <button
-            type="button"
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink-2 hover:bg-inset"
-            onClick={handleDownloadAll}
+            aria-label="Download all renders"
+            title="Download all"
+            className={iconButton}
+            onClick={downloadAll}
           >
             <DownloadSimple size={14} />
-            Download all
           </button>
           <button
             type="button"
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink-2 hover:bg-inset"
-            onClick={(e) => {
-              e.stopPropagation()
-              setMenuOpen(false)
-            }}
+            aria-label="Duplicate session"
+            title="Duplicate"
+            className={iconButton}
+            onClick={() => duplicateSession(session.id)}
           >
             <Copy size={14} />
-            Duplicate
           </button>
-          <div className="my-1 border-t border-line" />
           <button
             type="button"
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-[#dc2626] hover:bg-inset"
-            onClick={(e) => {
-              e.stopPropagation()
-              setMenuOpen(false)
-            }}
+            aria-label="Open in render setup"
+            title="Open in render setup"
+            className={iconButton}
+            onClick={open}
           >
-            <Trash size={14} />
-            Delete
+            <ArrowSquareOut size={14} />
           </button>
         </div>
-      )}
-    </div>
-  )
-}
+      </div>
 
-function PlanConfig({ planId }: { planId: string }) {
-  const configs: Record<string, { elevation: string; options: number; styles: string[] }> = {
-    allison: { elevation: 'Elevation A', options: 12, styles: ['Daylight', 'Twilight'] },
-    untitled: { elevation: 'Elevation B', options: 8, styles: ['Overcast'] },
-    cedar: { elevation: 'Elevation A', options: 6, styles: ['Golden hour'] },
-    millhouse: { elevation: 'Elevation C', options: 10, styles: ['Hoops'] },
-  }
-  const cfg = configs[planId]
-  if (!cfg) return null
+      <div className="mr-6 flex w-[240px] shrink-0 flex-col gap-2 overflow-hidden">
+        <div className="truncate text-[12px] text-ink-3">
+          <span className="text-ink-4">Style:</span> {view.styleName}
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {inputChips(view).map((chip) => (
+            <span
+              key={chip.category}
+              title={`${chip.category}: ${chip.label}`}
+              className="inline-flex h-[18px] items-center rounded-full border border-line bg-inset px-1.5 text-[10px] text-ink-2"
+            >
+              {chip.label}
+            </span>
+          ))}
+        </div>
+        {view.prompt && (
+          <p className="line-clamp-3 text-[11px] italic leading-4 text-ink-3" title={view.prompt}>
+            “{view.prompt}”
+          </p>
+        )}
+      </div>
 
-  return (
-    <div className="shrink-0 space-y-0.5 text-[11px] text-ink-3">
-      <div>{cfg.elevation}</div>
-      <div>{cfg.options} options selected</div>
-      <div>{cfg.styles.join(', ')}</div>
-    </div>
+      <div className="flex min-w-0 flex-1 gap-4 overflow-x-auto">
+        {renders.map((render) => (
+          <RenderCard key={render.id} render={render} compact />
+        ))}
+      </div>
+    </section>
   )
 }

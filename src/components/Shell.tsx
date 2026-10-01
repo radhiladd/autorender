@@ -6,31 +6,155 @@ import {
   Plus,
   Question,
   SquaresFour,
+  ArrowLeft,
 } from '@phosphor-icons/react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { isAutorenderPath, NAV_ITEMS } from '../nav'
 import { useLibrary } from '../store/library'
-import { NewRenderModal } from './NewRenderModal'
+import { useRenderFlow, isShowroomSummary } from '../store/renderFlow'
 import { StylesButton, StylesDialog } from './StylesDialog'
+import { PlanPicker } from '../pages/PlanPicker'
+import { FolderTree } from './FolderTree'
+import { PlanChips, useSaveRender } from '../pages/RenderStudio'
+import { Button } from '@higharc/dcp-hds-staging/button'
+
+function CompleteRenders() {
+  const { save, canSave } = useSaveRender()
+  return (
+    <Button size="base" variant="secondary" disabled={!canSave} onClick={save}>
+      Save Renders
+    </Button>
+  )
+}
 
 export function Shell({ children }: { children: ReactNode }) {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const navigate = useNavigate()
+  const { resetDraft, changePlan, clearResults, draft: renderDraft, setSummary } = useRenderFlow()
+  const { persist: persistRenders, keptCount } = useSaveRender()
   const q = params.get('q') ?? ''
   const [draft, setDraft] = useState(q)
-  const [newOpen, setNewOpen] = useState(false)
   const [stylesOpen, setStylesOpen] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const autorender = isAutorenderPath(location.pathname)
-  const planMatch = location.pathname.match(/^\/autorender\/plans\/([^/]+)/)
-  const presetPlanId = planMatch?.[1]
   const onLibraryHome = location.pathname === '/autorender'
   const searchValue = onLibraryHome ? q : draft
   const activeId =
     NAV_ITEMS.find((item) =>
       item.id === 'autorender' ? autorender : location.pathname === item.path,
     )?.id ?? (autorender ? 'autorender' : undefined)
+  const renderStep = location.pathname.includes('/autorender/render/review/')
+    ? 'review'
+    : location.pathname.includes('/autorender/render/configure')
+      ? 'configure'
+      : location.pathname.includes('/autorender/render/studio')
+        ? 'studio'
+        : null
+  const renderFlow = renderStep !== null
+
+  useEffect(() => {
+    const next = location.state as { pickPlan?: boolean } | null
+    if (!next?.pickPlan) return
+    setPickerOpen(true)
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+  }, [location.pathname, location.search, location.state, navigate])
+
+  if (renderFlow) {
+    return (
+      <div className="flex h-full min-h-0 flex-col bg-white">
+        <div className="relative flex h-12 shrink-0 items-center gap-3 pb-1 pl-4 pr-2">
+          {renderStep === 'studio' && (
+            <div className="absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2">
+              <PlanChips
+                planId={renderDraft.planId}
+                planName={renderDraft.planName}
+                summary={renderDraft.summary}
+                hasRenders={renderDraft.results.length > 0}
+                keptCount={keptCount}
+                onSelectPlan={(plan) => {
+                  changePlan({ planId: plan.id, planName: plan.name })
+                  navigate(`/autorender/render/studio/${plan.id}`, { replace: true })
+                }}
+                onEditConfig={() => {
+                  persistRenders()
+                  clearResults()
+                  if (renderDraft.planId) {
+                    navigate(`/autorender/render/configure/${renderDraft.planId}`)
+                  }
+                }}
+              />
+            </div>
+          )}
+          {renderStep === 'review' && (
+            <button
+              type="button"
+              aria-label="Back to configuring"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] text-ink-3 hover:bg-inset hover:text-ink"
+              onClick={() => {
+                if (renderDraft.planId)
+                  navigate(`/autorender/render/configure/${renderDraft.planId}`)
+              }}
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
+          <div className="min-w-0 truncate text-[14px] font-semibold text-[#111827]">
+            {renderStep === 'configure'
+              ? 'Configure Plan'
+              : renderStep === 'review'
+                ? 'Review Plan'
+                : renderStep === 'studio'
+                  ? 'Generate Renders'
+                  : 'New render'}
+          </div>
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <Button
+              size="base"
+              variant="ghost"
+              onClick={() => {
+                resetDraft()
+                navigate('/autorender')
+              }}
+            >
+              Exit
+            </Button>
+            {(renderStep === 'configure' || renderStep === 'review') &&
+              (renderStep === 'review' ? (
+                <button
+                  type="button"
+                  className="h-8 rounded-[6px] bg-[#171717] px-3 text-[12px] font-medium text-white hover:bg-[#2e2e2e]"
+                  onClick={() => {
+                    const summary = window.__autorenderReadConfig?.()
+                    if (summary && isShowroomSummary(summary)) {
+                      setSummary({ ...summary, options: summary.options ?? [] })
+                    }
+                    if (renderDraft.planId)
+                      navigate(`/autorender/render/studio/${renderDraft.planId}`)
+                  }}
+                >
+                  Render setup
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="h-8 rounded-[6px] bg-[#171717] px-3 text-[12px] font-medium text-white hover:bg-[#2e2e2e]"
+                  onClick={() => {
+                    if (renderDraft.planId)
+                      navigate(`/autorender/render/review/${renderDraft.planId}`)
+                  }}
+                >
+                  Review Plan
+                </button>
+              ))}
+            {renderStep === 'studio' && <CompleteRenders />}
+          </div>
+        </div>
+        <main className="ha-scroll flex min-h-0 flex-1 flex-col">{children}</main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full flex-col bg-[#f5f5f5]">
@@ -117,10 +241,10 @@ export function Shell({ children }: { children: ReactNode }) {
             className="flex shrink-0 items-center gap-2.5 border-b border-line bg-white"
             style={{ padding: '14px 24px', minHeight: 56 }}
           >
-            <h1
-              className="m-0 shrink-0 text-[18px] font-semibold leading-[1.2] tracking-[-0.1px] text-[#111827]"
-            >
-              {autorender ? 'AutoRender' : NAV_ITEMS.find((n) => n.id === activeId)?.label ?? 'Config'}
+            <h1 className="m-0 shrink-0 text-[18px] font-semibold leading-[1.2] tracking-[-0.1px] text-[#111827]">
+              {autorender
+                ? 'AutoRender'
+                : (NAV_ITEMS.find((n) => n.id === activeId)?.label ?? 'Config')}
             </h1>
             {autorender && (
               <>
@@ -154,7 +278,7 @@ export function Shell({ children }: { children: ReactNode }) {
                   <StylesButton onClick={() => setStylesOpen(true)} />
                   <button
                     type="button"
-                    onClick={() => setNewOpen(true)}
+                    onClick={() => setPickerOpen(true)}
                     className="flex h-8 items-center gap-1 rounded-[6px] bg-[#171717] px-3 text-[12px] font-medium text-white hover:bg-[#2e2e2e]"
                   >
                     <Plus size={11} weight="bold" />
@@ -167,21 +291,19 @@ export function Shell({ children }: { children: ReactNode }) {
 
           {autorender && <HeaderBreadcrumbs />}
 
-          <main className="ha-scroll min-h-0 flex-1">{children}</main>
+          {autorender ? (
+            <div className="flex min-h-0 flex-1">
+              <FolderTree onNewRender={() => setPickerOpen(true)} />
+              <main className="ha-scroll flex min-h-0 min-w-0 flex-1 flex-col">{children}</main>
+            </div>
+          ) : (
+            <main className="ha-scroll flex min-h-0 flex-1 flex-col">{children}</main>
+          )}
         </div>
       </div>
 
       {stylesOpen && <StylesDialog onClose={() => setStylesOpen(false)} />}
-      {newOpen && (
-        <NewRenderModal
-          presetPlanId={presetPlanId}
-          onClose={() => setNewOpen(false)}
-          onCreated={(planId) => {
-            setNewOpen(false)
-            navigate(`/autorender/plans/${planId}`)
-          }}
-        />
-      )}
+      {pickerOpen && <PlanPicker onClose={() => setPickerOpen(false)} />}
     </div>
   )
 }
@@ -232,11 +354,7 @@ function SidebarItem({
   )
 }
 
-export function Breadcrumb({
-  items,
-}: {
-  items: { label: string; to?: string }[]
-}) {
+export function Breadcrumb({ items }: { items: { label: string; to?: string }[] }) {
   return (
     <nav className="flex items-center gap-1.5 text-[13px] text-ink-3">
       {items.map((item, i) => (
@@ -258,33 +376,30 @@ export function Breadcrumb({
 function HeaderBreadcrumbs() {
   const location = useLocation()
   const { state } = useLibrary()
-  const folderMatch = location.pathname.match(/^\/autorender\/plans\/([^/]+)\/folders\/([^/]+)/)
+  const collectionMatch = location.pathname.match(/^\/autorender\/collections\/([^/]+)/)
   const planMatch = location.pathname.match(/^\/autorender\/plans\/([^/]+)/)
-
   const items: { label: string; to?: string }[] = []
-  if (folderMatch) {
-    const plan = state.plans.find((p) => p.id === folderMatch[1])
-    const folder = state.folders.find((f) => f.id === folderMatch[2])
+  if (collectionMatch) {
+    const collection = state.collections.find((c) => c.id === collectionMatch[1])
+    const parent = state.collections.find((c) => c.id === collection?.parentId)
     items.push(
       { label: 'Library', to: '/autorender' },
-      { label: plan?.name ?? 'Plan', to: `/autorender/plans/${folderMatch[1]}` },
-      { label: folder?.name ?? 'Folder' },
+      ...(parent ? [{ label: parent.name, to: `/autorender/collections/${parent.id}` }] : []),
+      { label: collection?.name ?? 'Collection' },
     )
+  } else if (location.pathname === '/autorender/renders') {
+    items.push({ label: 'Library', to: '/autorender' }, { label: 'Renders' })
+  } else if (location.pathname === '/autorender/sessions') {
+    items.push({ label: 'Library', to: '/autorender' }, { label: 'Sessions' })
   } else if (planMatch) {
     const plan = state.plans.find((p) => p.id === planMatch[1])
-    items.push(
-      { label: 'Library', to: '/autorender' },
-      { label: plan?.name ?? 'Plan' },
-    )
+    items.push({ label: 'Library', to: '/autorender' }, { label: plan?.name ?? 'Plan' })
   }
 
   if (items.length === 0) return null
 
   return (
-    <div
-      className="flex shrink-0 items-center px-6"
-      style={{ height: 40 }}
-    >
+    <div className="flex shrink-0 items-center px-6" style={{ height: 40 }}>
       <Breadcrumb items={items} />
     </div>
   )

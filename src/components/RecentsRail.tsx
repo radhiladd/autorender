@@ -1,5 +1,6 @@
 import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { useState, type MouseEvent } from 'react'
+import { Link } from 'react-router-dom'
 import {
   formatSessionDateTime,
   personName,
@@ -9,6 +10,7 @@ import {
 } from '../lib/format'
 import { useLibrary } from '../store/library'
 import type { Session } from '../types'
+import { useSessionView } from './SessionStack'
 
 export function RecentsRail() {
   const { state } = useLibrary()
@@ -18,7 +20,9 @@ export function RecentsRail() {
     <section>
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="text-[14px] font-medium text-ink-2">Recent sessions</h2>
-        <p className="text-[12px] text-ink-4">Latest across every plan</p>
+        <Link to="/autorender/sessions" className="text-[12px] text-[#1d4ed8] hover:underline">
+          View all sessions
+        </Link>
       </div>
       <div className="film-scroll -mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
         {items.map((session) => (
@@ -37,6 +41,11 @@ function SessionPreviewCard({ session }: { session: Session }) {
   const plan = state.plans.find((p) => p.id === session.planId)
   const count = photos.length
   const author = personName(session.createdBy)
+  const view = useSessionView(session)
+  const options =
+    view.optionCount === 0
+      ? 'Default options'
+      : `${view.optionCount} ${view.optionCount === 1 ? 'option' : 'options'}`
 
   if (!current) return null
 
@@ -56,11 +65,7 @@ function SessionPreviewCard({ session }: { session: Session }) {
           onClick={() => openLightbox(current.id)}
           aria-label={`Open ${current.name}`}
         >
-          <img
-            src={renderSrc(current.image)}
-            alt=""
-            className="h-full w-full object-cover"
-          />
+          <img src={renderSrc(current.image)} alt="" className="h-full w-full object-cover" />
         </button>
         {count > 1 && (
           <>
@@ -101,10 +106,15 @@ function SessionPreviewCard({ session }: { session: Session }) {
       </div>
       <div className="mt-2 min-w-0">
         <div className="truncate text-[13px] font-medium text-ink-2">{plan?.name}</div>
+        <div className="truncate text-[12px] text-ink-3">
+          {options} · {view.styleName}
+        </div>
         <div className="truncate text-[12px] text-ink-4">
           {count} {count === 1 ? 'render' : 'renders'} · {author}
         </div>
-        <div className="truncate text-[12px] text-ink-4">{formatSessionDateTime(session.createdAt)}</div>
+        <div className="truncate text-[12px] text-ink-4">
+          {formatSessionDateTime(session.createdAt)}
+        </div>
       </div>
     </article>
   )

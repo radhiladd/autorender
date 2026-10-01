@@ -1,22 +1,23 @@
-import { DotsThree, FolderPlus, PencilSimple } from '@phosphor-icons/react'
+import { DotsThree, PencilSimple } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatRelative, lastActivityIso, latestCover, renderSrc } from '../lib/format'
 import { useLibrary } from '../store/library'
 import type { Plan } from '../types'
-import { FOLDER_LIST_ROW } from './FolderCard'
 import type { FolderView } from './ViewToggle'
 import { NameDialog } from './NameDialog'
 
+export const PLAN_LIST_ROW =
+  'grid grid-cols-[minmax(8rem,1fr)_5.5rem_7.5rem_8.5rem] items-center gap-x-4 px-3 pr-11'
+
 export function PlanCard({ plan, layout = 'list' }: { plan: Plan; layout?: FolderView }) {
-  const { state, renamePlan, createFolder } = useLibrary()
+  const { state, renamePlan } = useLibrary()
   const count = state.renders.filter((r) => r.planId === plan.id).length
-  const folderCount = state.folders.filter((f) => f.planId === plan.id).length
+  const sessionCount = state.sessions.filter((s) => s.planId === plan.id).length
   const cover = latestCover(state.renders, plan.id)
   const activity = lastActivityIso(state.renders, plan.id)
   const [menuOpen, setMenuOpen] = useState(false)
   const [renaming, setRenaming] = useState(false)
-  const [newFolder, setNewFolder] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function PlanCard({ plan, layout = 'list' }: { plan: Plan; layout?: Folde
 
   const meta = [
     `${count} ${count === 1 ? 'render' : 'renders'}`,
-    folderCount > 0 ? `${folderCount} ${folderCount === 1 ? 'folder' : 'folders'}` : null,
+    sessionCount > 0 ? `${sessionCount} ${sessionCount === 1 ? 'session' : 'sessions'}` : null,
     activity ? formatRelative(activity) : null,
   ]
     .filter(Boolean)
@@ -42,11 +43,11 @@ export function PlanCard({ plan, layout = 'list' }: { plan: Plan; layout?: Folde
         {layout === 'list' ? (
           <Link
             to={`/autorender/plans/${plan.id}`}
-            className={`${FOLDER_LIST_ROW} h-10 text-[13px] hover:bg-inset`}
+            className={`${PLAN_LIST_ROW} h-10 text-[13px] hover:bg-inset`}
           >
             <div className="truncate font-medium text-ink-2">{plan.name}</div>
             <div className="tabular-nums text-ink-3">{count}</div>
-            <div className="tabular-nums text-ink-3">{folderCount}</div>
+            <div className="tabular-nums text-ink-3">{sessionCount}</div>
             <div className="truncate text-ink-3">{activity ? formatRelative(activity) : '—'}</div>
           </Link>
         ) : (
@@ -71,12 +72,16 @@ export function PlanCard({ plan, layout = 'list' }: { plan: Plan; layout?: Folde
           </Link>
         )}
         <div
-          className={layout === 'list' ? 'absolute top-1/2 right-2 -translate-y-1/2' : 'absolute top-2 right-2'}
+          className={
+            layout === 'list'
+              ? 'absolute top-1/2 right-2 -translate-y-1/2'
+              : 'absolute top-2 right-2'
+          }
           ref={menuRef}
         >
           <button
             type="button"
-            aria-label="Folder actions"
+            aria-label="Plan actions"
             className="rounded-[6px] border border-line bg-white p-1 text-ink-3 shadow-sm hover:bg-inset"
             onClick={(e) => {
               e.preventDefault()
@@ -99,44 +104,20 @@ export function PlanCard({ plan, layout = 'list' }: { plan: Plan; layout?: Folde
                 <PencilSimple size={14} />
                 Rename
               </button>
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-ink-2 hover:bg-inset"
-                onClick={() => {
-                  setMenuOpen(false)
-                  setNewFolder(true)
-                }}
-              >
-                <FolderPlus size={14} />
-                New subfolder
-              </button>
             </div>
           )}
         </div>
       </div>
       {renaming && (
         <NameDialog
-          title="Rename folder"
-          label="Folder name"
+          title="Rename plan"
+          label="Plan name"
           initial={plan.name}
           confirmLabel="Save"
           onClose={() => setRenaming(false)}
           onSubmit={(name) => {
             renamePlan(plan.id, name)
             setRenaming(false)
-          }}
-        />
-      )}
-      {newFolder && (
-        <NameDialog
-          title="New subfolder"
-          label="Folder name"
-          initial=""
-          confirmLabel="Create"
-          onClose={() => setNewFolder(false)}
-          onSubmit={(name) => {
-            createFolder(plan.id, name)
-            setNewFolder(false)
           }}
         />
       )}

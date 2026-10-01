@@ -3,9 +3,8 @@ export type Plan = {
   name: string
 }
 
-export type Folder = {
+export type Collection = {
   id: string
-  planId: string
   name: string
   parentId?: string | null
 }
@@ -15,23 +14,38 @@ export type PersonName = {
   lastName: string
 }
 
+export type SessionSetup = {
+  elevation: string | null
+  optionCount: number
+  options: string[]
+  styleId: string
+  styleName: string
+  styleParams: StyleParams | null
+  camera: string
+  aspect: string
+  prompt: string
+}
+
 export type Session = {
   id: string
   planId: string
   createdAt: string
   styleLabel: string
   createdBy: PersonName
+  setup?: SessionSetup
 }
 
 export type Render = {
   id: string
   planId: string
   sessionId: string
-  folderId: string | null
+  collectionIds: string[]
   name: string
   image: string
   createdAt: string
   downloadable: boolean
+  prompt?: string
+  refined?: boolean
 }
 
 export type StyleParams = {
@@ -56,7 +70,7 @@ export type Style = {
 
 export type LibraryState = {
   plans: Plan[]
-  folders: Folder[]
+  collections: Collection[]
   sessions: Session[]
   renders: Render[]
   styles: Style[]

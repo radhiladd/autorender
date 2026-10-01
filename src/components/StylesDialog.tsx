@@ -20,36 +20,36 @@ const DEFAULT_PARAMS: StyleParams = {
 
 type OptionDef<V extends string> = { value: V; label: string; desc?: string }
 
-const RENDER_STYLES: OptionDef<StyleParams['renderStyle']>[] = [
+export const RENDER_STYLES: OptionDef<StyleParams['renderStyle']>[] = [
   { value: 'Photorealistic', label: 'Photorealistic', desc: 'photorealistic rendering style' },
   { value: 'Watercolor', label: 'Watercolor', desc: 'artistic watercolor painting style' },
   { value: 'Architectural Sketch', label: 'Sketch', desc: 'hand-drawn architectural sketch' },
 ]
-const TIMES: OptionDef<StyleParams['timeOfDay']>[] = [
+export const TIMES: OptionDef<StyleParams['timeOfDay']>[] = [
   { value: 'Dawn', label: 'Dawn' },
   { value: 'Morning', label: 'Morning' },
   { value: 'Midday', label: 'Midday' },
   { value: 'Dusk', label: 'Dusk' },
   { value: 'Sunset', label: 'Sunset' },
 ]
-const WEATHERS: OptionDef<StyleParams['weather']>[] = [
+export const WEATHERS: OptionDef<StyleParams['weather']>[] = [
   { value: 'Clear Sky', label: 'Clear Sky' },
   { value: 'Partly Cloudy', label: 'Partly Cloudy' },
   { value: 'After Rain', label: 'After Rain' },
 ]
-const SCENES: OptionDef<StyleParams['scene']>[] = [
+export const SCENES: OptionDef<StyleParams['scene']>[] = [
   { value: 'Mountain', label: 'Mountain' },
   { value: 'Country', label: 'Country' },
   { value: 'Desert', label: 'Desert' },
   { value: 'Community', label: 'Community' },
   { value: 'Forest', label: 'Forest' },
 ]
-const FLOWERBED: OptionDef<StyleParams['flowerbedCover']>[] = [
+export const FLOWERBED: OptionDef<StyleParams['flowerbedCover']>[] = [
   { value: 'Wood Nuggets', label: 'Wood Nuggets' },
   { value: 'Pine Straw', label: 'Pine Straw' },
   { value: 'Dark Soil', label: 'Dark Soil' },
 ]
-const YARD: OptionDef<StyleParams['yardCover']>[] = [
+export const YARD: OptionDef<StyleParams['yardCover']>[] = [
   { value: 'Grass', label: 'Grass' },
   { value: 'Freshly Mowed Grass', label: 'Mowed' },
   { value: 'Rocks', label: 'Rocks' },
@@ -57,16 +57,16 @@ const YARD: OptionDef<StyleParams['yardCover']>[] = [
   { value: 'Native Ground Cover', label: 'Native' },
   { value: 'Texture', label: 'Texture' },
 ]
-const STAGING: OptionDef<StyleParams['staging']>[] = [
+export const STAGING: OptionDef<StyleParams['staging']>[] = [
   { value: 'Yes', label: 'Staged' },
   { value: 'No', label: 'Empty' },
 ]
-const WINDOWS: OptionDef<StyleParams['windowTreatments']>[] = [
+export const WINDOWS: OptionDef<StyleParams['windowTreatments']>[] = [
   { value: 'Nothing', label: 'None' },
   { value: 'Curtains', label: 'Curtains' },
   { value: 'Blinds', label: 'Blinds' },
 ]
-const MODES: OptionDef<StyleParams['mode']>[] = [
+export const MODES: OptionDef<StyleParams['mode']>[] = [
   { value: 'low', label: 'Low (fast)' },
   { value: 'high', label: 'High (pro)' },
 ]
